@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+from argparse import ArgumentParser
 
 # Keywords for each class of memory
 Target_list = ["Total", "Heap", "Thread", "GC", "Internal"]
@@ -15,21 +16,28 @@ def tracking(pid, target, period, times, tmpfile):
         time.sleep(period)
 
 if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--pid", dest = "pid")
+    parser.add_argument("--target", dest = "target")
+    parser.add_argument("--period", dest = "period")
+    parser.add_argument("--times", dest = "times")
+    args = parser.parse_args()
+
     # JVM pid
     # TODO: Handling invlaid PID
-    PID = sys.argv[1]
+    PID = args.pid
 
     # Target
-    TARGET = sys.argv[2]
+    TARGET = args.target
     if TARGET not in Target_list:
         print("Not Available Target")
         quit()
 
     # Sampling Period (sec)
-    PERIOD = int(sys.argv[3])
+    PERIOD = int(args.period)
 
     # Sampling Times
-    TIMES = int(sys.argv[4])
+    TIMES = int(args.times)
 
     # Temp Output File
     tmpfile = "/tmp/tmp-nmt-%d" % (int(time.time()))
