@@ -15,6 +15,20 @@ def tracking(pid, target, period, times, tmpfile):
         print(cmdJCMD + " | grep " + target + " >> " + tmpfile)
         time.sleep(period)
 
+# Parsing statistic data from tmpfile
+def parsing(tmpfile):
+    # The target string : "committed=123456KB"
+    trace = []
+    fin = open(tmpfile, "r")
+    while True:
+        line = fin.readline()
+        if not line: break
+        line = line.split("committed=")[1]
+        line = line.split("KB")[0]
+        trace.append(line)
+    fin.close()
+    return trace
+
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--pid", dest = "pid")
