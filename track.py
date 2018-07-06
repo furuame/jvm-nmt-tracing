@@ -1,30 +1,45 @@
 import os
 import sys
 import time
-
-# JVM pid
-PID = sys.argv[1]
-
-# Sampling Period (sec)
-interval = 5
-
-# Sampling Times
-times = 100
-
-# Temp Output File
-tmpfile = "/tmp/tmp-nmt-%d" % (int(time.time()))
+from argparse import ArgumentParser
 
 # Keywords for each class of memory
-keyTotal = "Total"
-keyJavaHeap = "Heap"
-keyThread = "Thread"
-keyGC = "GC"
-keyInternal = "Internal"
+Target_list = ["Total", "Heap", "Thread", "GC", "Internal"]
 
-# JCMD Command
-cmdJCMD = "jcmd " + PID + " VM.native_memory"
+# Tracking <target> <times> Process <pid> every <period> sec
+def tracking(pid, target, period, times, tmpfile):
+    cmdJCMD = "jcmd " + pid + " VM.native_memory"
 
-for i in range(times):
-    print("%d / %d" % (i, times))
-    os.system(cmdJCMD + " | grep " + keyTotal + " >> " + tmpfile)
-    time.sleep(interval)
+    for i in range(times):
+        # os.system(cmdJCMD + " | grep " + target + " >> " + tmpfile)
+        print(cmdJCMD + " | grep " + target + " >> " + tmpfile)
+        time.sleep(period)
+
+if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--pid", dest = "pid")
+    parser.add_argument("--target", dest = "target")
+    parser.add_argument("--period", dest = "period")
+    parser.add_argument("--times", dest = "times")
+    args = parser.parse_args()
+
+    # JVM pid
+    # TODO: Handling invlaid PID
+    PID = args.pid
+
+    # Target
+    TARGET = args.target
+    if TARGET not in Target_list:
+        print("Not Available Target")
+        quit()
+
+    # Sampling Period (sec)
+    PERIOD = int(args.period)
+
+    # Sampling Times
+    TIMES = int(args.times)
+
+    # Temp Output File
+    tmpfile = "/tmp/tmp-nmt-%d" % (int(time.time()))
+
+    tracking(PID, TARGET, PERIOD, TIMES, tmpfile)
