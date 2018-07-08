@@ -6,17 +6,33 @@ from argparse import ArgumentParser
 # Keywords for each class of memory
 Target_list = ["Total", "Heap", "Thread", "GC", "Internal"]
 
-# Tracking <target> <times> Process <pid> every <period> sec
-def tracking(pid, target, period, times, tmpfile):
+# Tracking <times> Process <pid> every <period> sec
+def tracking(pid, period, times, tmpfile):
     cmdJCMD = "jcmd " + pid + " VM.native_memory"
 
     for i in range(times):
-        os.system(cmdJCMD + " | grep " + target + " >> " + tmpfile)
+        os.system(cmdJCMD +  " >> " + tmpfile)
         # print(cmdJCMD + " | grep " + target + " >> " + tmpfile)
-        print("Progress : %d / %d \n" % (i, times))
+        print("Progress : %d / %d" % (i, times))
         time.sleep(period)
 
-# Parsing statistic data from tmpfile
+# Filtering each target on timpfile
+def filtering(tmpfile):
+    fin = open(tmpfile, "r")
+    trace = []
+    while True:
+        line = fin.readline()
+        if not line: break
+        trace.append(line)
+    fin.close()
+
+    for tgt in Target_list:
+        fout = open(tmpfile + "-" + tgt, "w")
+        for line in trace:
+            if tgt in line: fout.write(line)
+        fout.close()
+
+# Parsing statistic data from specific file
 def parsing(tmpfile):
     # The target string : "committed=123456KB"
     trace = []
@@ -43,18 +59,15 @@ if __name__ == "__main__":
     parser.add_argument("--target", dest = "target")
     parser.add_argument("--period", dest = "period")
     parser.add_argument("--times", dest = "times")
-    parser.add_argument("--output", dest = "output")
+    parser.add_argument("--output-prefix", dest = "output_prefix")
     args = parser.parse_args()
 
     # JVM pid
     # TODO: Handling invlaid PID
     PID = args.pid
 
-    # Target
-    TARGET = args.target
-    if TARGET not in Target_list:
-        print("Not Available Target")
-        quit()
+    # Target "list"
+    TARGET = args.target.split(',')
 
     # Sampling Period (sec)
     PERIOD = int(args.period)
@@ -66,8 +79,16 @@ if __name__ == "__main__":
     tmpfile = "/tmp/tmp-nmt-%d" % (int(time.time()))
 
     # Output file (csv)
-    outputfile = args.output
+    output_prefix = args.output_prefix
 
-    tracking(PID, TARGET, PERIOD, TIMES, tmpfile)
-    trace = parsing(tmpfile)
-    output(PERIOD, trace, outputfile)
+    tracking(PID, PERIOD, TIMES, tmpfile)
+    filtering(tmpfile)
+
+    for tgt in TARGET:
+        if tgt not in Target_list:
+            print("%s is not availble target" % (tgt))
+            pass
+        filename = tmpfile + "-" + tgt
+        outputfile = output_prefix + "-" + tgt + ".csv"
+        trace = parsing(filename)
+        output(PERIOD, trace, outputfile)
