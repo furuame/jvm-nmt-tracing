@@ -35,7 +35,7 @@ This project can give you the internal memory usage of Java Virtual Machine (JVM
                        --target <Target Class of Memory> \
                        --period <Sampling period in sec> \
                        --times <Times of Sampling> \
-                       --output <Output file in csv>
+                       --output-prefix <Output file prefix name>
   ```
 
 * Classes of internal memory in JVM
@@ -50,11 +50,15 @@ This project can give you the internal memory usage of Java Virtual Machine (JVM
 
   ```shell
   $ python3 tracing.py --pid 9527 \
-                       --target GC \
+                       --target Total,GC \
                        --period 5 \
                        --times 100 \
-                       --output ./output.csv
+                       --output-prefix testing
   ```
+* There will be new csv files in the current directory
+
+  * `testing-Total.csv`
+  * `testing-GC.csv`
 
 * Output file is like the following
 
@@ -71,7 +75,7 @@ This project can give you the internal memory usage of Java Virtual Machine (JVM
   40,3716090
   ```
 
-  
+
 
 ## Licensing
 
