@@ -46,6 +46,32 @@ def parsing(tmpfile):
     fin.close()
     return trace
 
+def askPID():
+    program_list = os.popen('jcmd').read()[:-1]
+    program_list = program_list.split('\n')
+    pid = []
+    program = []
+
+    print("Which program do you want to monitor?")
+    for i in range(len(program_list)):
+        tmplist = program_list[i].split(' ')
+        pid.append(tmplist[0])
+        print("[%d] %s" % (i, program_list[i]))
+    index = int(input())
+    return pid[index]
+
+def askTARGET():
+    print("Which target do you want to monitor? Ex. \"Total,Heap\"")
+    for i in range(len(Target_list)):
+        print("[%d] %s" % (i, Target_list[i]))
+    ret = input()
+    return ret
+
+def ask(name, unit):
+    print("Which %s do you want to set? (%s)" % (name, unit))
+    ret = input()
+    return ret
+
 # Output data as csv file
 def output(period, trace, outputfile):
     fout = open(outputfile, "w")
@@ -64,30 +90,48 @@ if __name__ == "__main__":
 
     # JVM pid
     # TODO: Handling invlaid PID
-    PID = args.pid
+    # PID = args.pid
+    if args.pid:
+        PID = args.pid
+    else:
+        PID = askPID()
 
     # Target "list"
-    TARGET = args.target.split(',')
+    if args.target:
+        TARGET = args.target.split(',')
+    else:
+        TARGET = askTARGET().split(',')
+
+    for tgt in TARGET:
+        if tgt not in Target_list:
+            print("Target \"%s\" is not availble target" % (tgt))
+            quit()
 
     # Sampling Period (sec)
-    PERIOD = int(args.period)
+    if args.period:
+        PERIOD = int(args.period)
+    else:
+        PERIOD = int(ask("Period", "sec"))
 
     # Sampling Times
-    TIMES = int(args.times)
+    if args.times:
+        TIMES = int(args.times)
+    else:
+        TIMES = int(ask("Sampling Times", "times"))
 
     # Temp Output File
     tmpfile = "/tmp/tmp-nmt-%d" % (int(time.time()))
 
     # Output file (csv)
-    output_prefix = args.output_prefix
+    if args.output_prefix:
+        output_prefix = args.output_prefix
+    else:
+        output_prefix = ask("Output filename prefix", "string")
 
     tracking(PID, PERIOD, TIMES, tmpfile)
     filtering(tmpfile)
 
     for tgt in TARGET:
-        if tgt not in Target_list:
-            print("%s is not availble target" % (tgt))
-            pass
         filename = tmpfile + "-" + tgt
         outputfile = output_prefix + "-" + tgt + ".csv"
         trace = parsing(filename)
