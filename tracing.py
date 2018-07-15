@@ -2,6 +2,8 @@ import os
 import sys
 import time
 from argparse import ArgumentParser
+import pandas as pd
+import matplotlib.pyplot as plt
 
 # Keywords for each class of memory
 Target_list = ["Total", "Heap", "Thread", "GC", "Internal"]
@@ -78,6 +80,24 @@ def output(period, trace, outputfile):
     for i in range(len(trace)):
         fout.write("%d,%s\n" % (i * period, trace[i]))
     fout.close()
+    
+# plot
+def plot(file):
+    #read csv file
+    colnames = ['time', 'Memory Usage']
+    data = pd.read_csv(file, names = colnames)
+    
+    #plot
+    plt.figure(figsize=(20,10), dpi = 72)
+    plt.style.use('ggplot')
+    plt.plot(data['time'], data['Memory Usage'])
+    plt.title('jvm-tracing')
+    plt.xlabel('time (sec)')
+    plt.ylabel('Memory Usage (KB)')
+    plt.grid(True)
+    
+    #output image
+    return plt.savefig('usage.png', dpi = 72)
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -136,3 +156,6 @@ if __name__ == "__main__":
         outputfile = output_prefix + "-" + tgt + ".csv"
         trace = parsing(filename)
         output(PERIOD, trace, outputfile)
+    
+    #plot (default filename = 'data.csv')
+    plot('data.csv')
