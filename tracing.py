@@ -82,10 +82,10 @@ def output(period, trace, outputfile):
     fout.close()
     
 # plot
-def plot(file):
+def plot(filename, imagename):
     #read csv file
     colnames = ['time', 'Memory Usage']
-    data = pd.read_csv(file, names = colnames)
+    data = pd.read_csv(filename, names = colnames)
     
     #plot
     plt.figure(figsize=(20,10), dpi = 72)
@@ -97,7 +97,7 @@ def plot(file):
     plt.grid(True)
     
     #output image
-    return plt.savefig('usage.png', dpi = 72)
+    return plt.savefig(imagename, dpi = 72)
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -154,8 +154,7 @@ if __name__ == "__main__":
     for tgt in TARGET:
         filename = tmpfile + "-" + tgt
         outputfile = output_prefix + "-" + tgt + ".csv"
+        imagename = output_prefix + "-" + tgt + ".png"
         trace = parsing(filename)
         output(PERIOD, trace, outputfile)
-    
-    #plot (default filename = 'data.csv')
-    plot('data.csv')
+        plot(outputfile,imagename)
